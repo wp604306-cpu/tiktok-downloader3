@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TikTok Downloader</title>
+<style>
+  body { font-family: Arial; margin:0; background:#f0f0f0; }
+  .navbar { display:flex; justify-content:space-between; align-items:center; background:#222; color:white; padding:10px 20px; }
+  .logo { font-size:20px; font-weight:bold; }
+  .hamburger { display:none; flex-direction:column; cursor:pointer; gap:5px; }
+  .hamburger div { width:25px; height:3px; background:white; }
+  .menu { display:flex; align-items:center; gap:20px; }
+  .container { max-width:600px; margin:50px auto; background:white; padding:20px; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,0.1); }
+  input, button { width:100%; padding:10px; margin-bottom:10px; }
+  video { width:100%; margin-top:10px; border-radius:10px; display:none; }
+  a button { width:100%; margin-top:10px; }
+  @media screen and (max-width:768px) { .menu { display:none; flex-direction:column; gap:0; background:#222; width:100%; } .menu a { padding:10px 20px; border-top:1px solid #333; } .hamburger { display:flex; } }
+</style>
+</head>
+<body>
+
+<div class="navbar">
+  <div class="logo">TikTok Downloader</div>
+  <div class="menu" id="menu">
+    <a href="#">Menu 1</a>
+    <a href="#">Menu 2</a>
+    <a href="#" onclick="showTikTokForm()">Download TikTok</a>
+  </div>
+  <div class="hamburger" onclick="toggleMenu()">
+    <div></div><div></div><div></div>
+  </div>
+</div>
+
+<div class="container" id="tiktokContainer">
+  <input type="text" id="tiktokURL" placeholder="Masukkan link TikTok">
+  <button onclick="previewTikTok()">Preview & Download</button>
+  <p id="status"></p>
+  <video id="previewVideo" controls></video>
+  <a id="downloadLink" href="#" download="tiktok.mp4" style="display:none;"><button>Download Video</button></a>
+</div>
+
+<script>
+function toggleMenu(){
+  const menu = document.getElementById('menu');
+  menu.style.display = menu.style.display==='flex'?'none':'flex';
+}
+function showTikTokForm(){
+  document.getElementById('tiktokContainer').style.display='block';
+}
+
+async function previewTikTok(){
+  const url = document.getElementById('tiktokURL').value;
+  if(!url) return alert('Masukkan link TikTok!');
+
+  const status = document.getElementById('status');
+  const video = document.getElementById('previewVideo');
+  const downloadLink = document.getElementById('downloadLink');
+
+  status.innerText='Sedang memproses...';
+  video.style.display='none';
+  downloadLink.style.display='none';
+
+  try{
+    const response = await fetch('/download',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({url})
+    });
+    const data = await response.json();
+
+    if(data.video){
+      video.src = data.video;
+      video.style.display='block';
+      downloadLink.href = data.video;
+      downloadLink.style.display='inline-block';
+      status.innerText='Preview siap. Klik tombol Download.';
+    }else{
+      status.innerText=data.error||'Gagal mendapatkan video';
+    }
+  }catch(err){
+    status.innerText='Terjadi error!';
+  }
+}
+</script>
+
+</body>
+  </html>
